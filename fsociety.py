@@ -1,5 +1,6 @@
 import os
 import subprocess
+import re
 
 # Function to clear the screen
 def clear_screen():
@@ -11,11 +12,26 @@ def clear_screen():
 # Wrapper for subprocess to run system commands
 def run_command(command):
     try:
-        subprocess.run(command, shell=True, check=True)
+        # Using a list for safer command execution
+        subprocess.run(command.split(), check=True)
     except subprocess.CalledProcessError as error:
-        print(f"Error: {error}")
+        print(f"Error executing command '{command}': {error}")
     else:
         print("\nExecution completed successfully.")
+
+# Function to validate IP address
+def validate_ip(ip):
+    pattern = r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    if re.match(pattern, ip):
+        return True
+    return False
+
+# Function to validate URL
+def validate_url(url):
+    pattern = r"^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$"
+    if re.match(pattern, url):
+        return True
+    return False
 
 # Banner
 def banner():
@@ -37,6 +53,9 @@ def nmap_scan():
     mode = input("Select mode: ")
 
     target = input("Enter the target IP or domain: ")
+    if not validate_ip(target):
+        print("Invalid IP address. Please try again.")
+        return
 
     if mode == '1':
         print(f"Running Nmap quick scan on {target}")
@@ -54,6 +73,9 @@ def hydra_bruteforce():
     mode = input("Select mode: ")
 
     target = input("Enter the target IP or domain: ")
+    if not validate_ip(target):
+        print("Invalid IP address. Please try again.")
+        return
 
     if mode == '1':
         run_command(f"hydra -l admin -P /usr/share/wordlists/rockyou.txt {target} ftp")
@@ -72,6 +94,9 @@ def sqlmap_scan():
     mode = input("Select mode: ")
 
     url = input("Enter the target URL: ")
+    if not validate_url(url):
+        print("Invalid URL. Please try again.")
+        return
 
     if mode == '1':
         run_command(f"sqlmap -u {url} --batch --banner")
@@ -102,6 +127,9 @@ def nikto_scan():
     mode = input("Select mode: ")
 
     target = input("Enter target domain: ")
+    if not validate_url(target):
+        print("Invalid URL. Please try again.")
+        return
 
     if mode == '1':
         run_command(f"nikto -h {target}")
@@ -134,10 +162,19 @@ def arp_spoof():
 
     if mode == '1':
         target = input("Enter the target IP: ")
+        if not validate_ip(target):
+            print("Invalid IP address. Please try again.")
+            return
         run_command(f"arpspoof -i eth0 -t {target} 192.168.1.1")
     elif mode == '2':
         target = input("Enter the target IP: ")
+        if not validate_ip(target):
+            print("Invalid IP address. Please try again.")
+            return
         gateway = input("Enter the gateway IP: ")
+        if not validate_ip(gateway):
+            print("Invalid IP address. Please try again.")
+            return
         run_command(f"arpspoof -i eth0 -t {target} {gateway}")
     else:
         print("Invalid mode selected.")
@@ -185,6 +222,9 @@ def masscan_scan():
     mode = input("Select mode: ")
 
     target = input("Enter the target IP range: ")
+    if not validate_ip(target):
+        print("Invalid IP address. Please try again.")
+        return
 
     if mode == '1':
         run_command(f"masscan -p0-65535 {target}")
@@ -244,9 +284,6 @@ def main_menu():
         else:
             print("Invalid option. Please try again.")
 
-# Start the program
-if name == "main":
+if __name__ == "__main__":
     main_menu()
-
-
 
